@@ -73,6 +73,20 @@ class Ingredient(models.Model):
         return self.name
 
 
+class IngredientAmount(models.Model):
+    """Amount of Ingredient to be used in a recipe"""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=7, decimal_places=2)
+    unit_of_measure = models.CharField(max_length=20)
+
+    def __str__(self):
+        return str(self.ingredient) + ' ' + str(self.amount) + self.unit_of_measure
+
+
 class Recipe(models.Model):
     """Recipe Modell"""
     user = models.ForeignKey(
@@ -81,9 +95,9 @@ class Recipe(models.Model):
     )
     title = models.CharField(max_length=255)
     time_minutes = models.IntegerField()
-    price = models.DecimalField(max_digits=5, decimal_places=2)
+    price = models.DecimalField(max_digits=5, decimal_places=2, blank=True)
     link = models.CharField(max_length=255, blank=True)
-    ingredients = models.ManyToManyField('Ingredient')
+    ingredient_amount = models.ManyToManyField('IngredientAmount')
     tags = models.ManyToManyField('Tag')
     image = models.ImageField(null=True, upload_to=recipe_image_file_path)
 

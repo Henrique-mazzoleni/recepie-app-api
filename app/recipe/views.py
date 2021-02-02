@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from core.models import Tag, Ingredient, Recipe
+from core.models import Tag, Ingredient, IngredientAmount, Recipe
 from recipe import serializers
 
 
@@ -26,7 +26,7 @@ class BaseRecipeAttrViewSet(viewsets.GenericViewSet,
 
         return queryset.filter(
             user=self.request.user
-        ).order_by('-name').distinct()
+        ).order_by('-id').distinct()
 
     def perform_create(self, serializer):
         """Create a new attribute"""
@@ -45,6 +45,12 @@ class IngredientViewSet(BaseRecipeAttrViewSet):
     serializer_class = serializers.IngredientSerializer
 
 
+class IngredientAmountViewSet(BaseRecipeAttrViewSet):
+    """Manage amounts in the database"""
+    queryset = IngredientAmount.objects.all()
+    serializer_class = serializers.IngredientAmountSerializer
+
+
 class RecipeViewSet(viewsets.ModelViewSet):
     """Manage recipes in the database"""
     authentication_classes = (TokenAuthentication,)
@@ -59,14 +65,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Return objects for the current authenticated user only"""
         tags = self.request.query_params.get('tags')
-        ingredients = self.request.query_params.get('ingredients')
+        ingredient_amount = self.request.query_params.get('ingredient_amount')
         queryset = self.queryset
         if tags:
             tag_ids = self._params_to_ints(tags)
             queryset = queryset.filter(tags__id__in=tag_ids)
-        if ingredients:
-            ingredient_ids = self._params_to_ints(ingredients)
-            queryset = queryset.filter(ingredients__id__in=ingredient_ids)
+        if ingredient_amount:
+            ingredient_amount_ids = self._params_to_ints(ingredient_amount)
+            queryset = queryset.filter(
+                ingredient_amount__id__in=ingredient_amount_ids)
 
         return queryset.filter(user=self.request.user).order_by('-id')
 
